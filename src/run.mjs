@@ -292,7 +292,9 @@ export function pauseRun(root, run, reason, { auto = false } = {}) {
   return run
 }
 
-// A person intervened, so the run gets its verify and review budget back.
+// A person intervened, so the run gets its verify and review budget back. The session binding
+// moves to the given session, or is dropped so that the next Stop claims the run for whichever
+// session resumed it.
 export function resumeRun(root, run, { session } = {}) {
   if (run.status === 'done' || run.status === 'stopped') {
     throw new CliError('run-closed', `the run is ${run.status}`, { hint: 'start a new one with `cruise start "<task>"`' })
@@ -304,7 +306,7 @@ export function resumeRun(root, run, { session } = {}) {
   run.verify.repeats = 0
   run.verify.signature = null
   run.review.rounds = 0
-  if (session) run.session_id = session
+  run.session_id = session ?? null
   writeRun(root, run)
   log(root, 'resume', { phase: run.phase })
   return run
