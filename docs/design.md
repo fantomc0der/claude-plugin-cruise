@@ -105,6 +105,21 @@ What the mod does:
 
 Two uses were considered and left out. Injecting the current phase's instructions as a system-prompt section would survive compaction better than the skill text, but it costs tokens on every request and makes the run depend on the mod loading; the Stop hook's one-line pointer to the skill file covers the compaction case for free. Registering `cruise_*` tools for state changes would read nicer than Bash calls, but every registered tool's schema is sent with every request, while a Bash call costs only when it is made.
 
+## Measured on a sample project
+
+A headless run (`claude -p`, Claude Code 2.1.314, other plugins and MCP servers disabled) against a two-file Node library with the request "add multiply and divide, a stats module with mean and median, tests for all four, and README docs":
+
+| | |
+| :- | :- |
+| Plan | Navigator wrote 3 tasks with 8 assumptions, 3 of them marked `[veto?]` |
+| Build | 3 builders, the first two in parallel; every task marked done through the CLI and ticked in the plan |
+| Verify and review | Passed on the first cycle and the first round |
+| Turns, time, cost | 21 API turns, 124 seconds, about $1.40 with Opus-class models for the lead, navigator, and reviewer |
+| Context | 5.5k output tokens over the whole run; 519k input tokens served from the prompt cache, 31k written to it |
+| Result | 5 tests passing, nothing committed, a report that led with the assumptions to veto |
+
+The Stop hook never had to nudge on that run: the lead worked through every phase in one turn. A second headless probe exercised it on purpose: with an unbound run on disk and a prompt that asked for a one-word reply, the hook fired on the first stop, claimed the run for that session, nudged, and the model followed the nudge; the run's log reads `start, claim, nudge, stop`. The stall and session-mismatch paths are covered by the unit tests, which feed the hook the same payloads Claude Code sends.
+
 ## Resuming and running headless
 
 - A session that starts in a project with an unfinished run gets one line from the SessionStart hook; `/cruise resume` rebinds the run to that session and continues at its phase.
