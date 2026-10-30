@@ -1,5 +1,8 @@
 {
   "description": "cruise: the Stop hook keeps an active run going; the prompt and session-start hooks tell the model how a message or a fresh session relates to it. All three read .cruise/run.json and print nothing when no run is active.",
+  "modules": [
+    "./register.tsx"
+  ],
   "hooks": {
     "Stop": [
       {
@@ -8,7 +11,11 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/bin/cruise", "hook", "stop"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/cruise",
+              "hook",
+              "stop"
+            ],
             "timeout": 10
           }
         ]
@@ -21,7 +28,11 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/bin/cruise", "hook", "prompt"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/cruise",
+              "hook",
+              "prompt"
+            ],
             "timeout": 10
           }
         ]
@@ -34,7 +45,11 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/bin/cruise", "hook", "session-start"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/bin/cruise",
+              "hook",
+              "session-start"
+            ],
             "timeout": 10
           }
         ]

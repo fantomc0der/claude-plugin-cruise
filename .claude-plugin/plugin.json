@@ -15,5 +15,6 @@
     "orchestration",
     "stop-hook",
     "token-efficient"
-  ]
+  ],
+  "types": "./types/index.d.ts"
 }
