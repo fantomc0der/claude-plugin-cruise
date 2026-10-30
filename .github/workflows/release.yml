@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check the tag against the manifests
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          plugin=$(node -p "require('./.claude-plugin/plugin.json').version")
+          pkg=$(node -p "require('./package.json').version")
+          if [ "$plugin" != "$version" ] || [ "$pkg" != "$version" ]; then
+            echo "::error::Tag $TAG does not match plugin.json ($plugin) and package.json ($pkg)."
+            exit 1
+          fi
+      - name: Extract the changelog section
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          awk -v v="$version" '
+            /^## \[/ { printing = ($0 ~ "^## \[" v "\]") }
+            /^\[[^]]+\]: / { printing = 0 }
+            printing { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::error::CHANGELOG.md has no section for $version."
+            exit 1
+          fi
+          cat release-notes.md
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" --title "$TAG" --notes-file release-notes.md

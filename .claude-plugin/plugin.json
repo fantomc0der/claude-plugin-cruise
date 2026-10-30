@@ -1,0 +1,19 @@
+{
+  "name": "cruise",
+  "version": "0.1.0",
+  "description": "Autonomous plan, build, verify, review runs that stay lean on tokens: one skill, three small agents, a Stop hook that keeps the run going, and a /helm command to watch or stop it.",
+  "author": {
+    "name": "fantomc0der",
+    "url": "https://github.com/fantomc0der"
+  },
+  "homepage": "https://github.com/fantomc0der/claude-plugin-cruise",
+  "repository": "https://github.com/fantomc0der/claude-plugin-cruise",
+  "license": "MIT",
+  "keywords": [
+    "autopilot",
+    "autonomous",
+    "orchestration",
+    "stop-hook",
+    "token-efficient"
+  ]
+}

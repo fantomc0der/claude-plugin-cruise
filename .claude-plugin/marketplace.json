@@ -1,0 +1,16 @@
+{
+  "name": "cruise",
+  "owner": {
+    "name": "fantomc0der"
+  },
+  "plugins": [
+    {
+      "name": "cruise",
+      "source": "./",
+      "description": "Autonomous plan, build, verify, review runs that stay lean on tokens."
+    }
+  ],
+  "metadata": {
+    "description": "Autonomous plan, build, verify, review runs that stay lean on tokens."
+  }
+}

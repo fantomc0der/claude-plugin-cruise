@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CLAUDE_CODE_VERSION: 2.1.314
+
+jobs:
+  check:
+    name: check (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@${{ env.CLAUDE_CODE_VERSION }}
+      - name: Validate marketplace and plugin
+        run: |
+          claude plugin validate . --strict
+          claude plugin validate .claude-plugin/plugin.json --strict
+          claude plugin validate skills --strict
+          claude plugin validate agents --strict
+      - name: Type-check the mod
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Manifests and changelog agree on the version
+        run: npm run check:release
+      - name: Unit tests under Git Bash
+        if: runner.os == 'Windows'
+        shell: bash
+        run: npm test
+      - name: Mod tests
+        if: hashFiles('hooks/hooks.json') != ''
+        run: claude plugin test .
+
+  # A change to what ships owes a changelog entry, and a version bump owes its dated
+  # section with an empty Unreleased. The skip-changelog label waives the first rule.
+  release-gate:
+    name: changelog and version gate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Check the diff against the base branch
+        env:
+          SKIP_CHANGELOG: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changelog') && '1' || '' }}
+        run: node scripts/check-release.mjs --base origin/${{ github.base_ref }}
